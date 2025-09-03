@@ -39,9 +39,9 @@ def focus(camera, stage, scan_range, factor, max_iter, pos_bounds, error_on_no_t
         stage.move_to("o", positions[np.argmax(contrast)])
         return focus(camera, stage, scan_range, factor, max_iter - 1, pos_bounds - (stage.get_motor_position("o") - initial_position), error_on_no_trend = error_on_no_trend, peak_in_range = False)
     
-# frames is a 3d numpy array of frames with pixel values in [0,1]. Returns mean square difference between each pixel and its neighbourhood for each frame.
-def contrast_metric(frames):
-    neighbourhood = 1
+# frames is a 3d numpy array of frames (gets mapped to [0,1]. Returns mean square difference between each pixel and its neighbourhood for each frame.
+def contrast_metric(frames, neighbourhood=1):
+    frames /= np.max(frames)
     # Pad the edges so that they don't affect each other during roll
     frames_padded = np.pad(frames, ((0,0),(neighbourhood,neighbourhood),(neighbourhood,neighbourhood)), mode='edge')
     shift_vals = np.linspace(-neighbourhood, neighbourhood+1)
@@ -52,7 +52,6 @@ def contrast_metric(frames):
     average = (sum_/np.size(shift_vals)**2)[:, neighbourhood:-neighbourhood,neighbourhood:-neighbourhood] 
     diff2 = (frames - average)**2
     return np.mean(diff2, (1,2))
-            
 
 def peak_type(contrast, threshold=0.2):
     max_, max_i = np.max(contrast), np.argmax(contrast)
